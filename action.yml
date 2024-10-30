@@ -46,37 +46,17 @@ outputs:
   build_url:
     description: "Jenkins build URL"
 
-# Define the Docker image and tag at the top
-env:
-  AWS_REGION: us-east-1
-  ECR_REPO: "899991151204.dkr.ecr.us-east-1.amazonaws.com"
-  DOCKER_IMAGE: "jenkins-githubaction:v1.0.1"
-
 runs:
   using: "composite"
   steps:
-    - name: Log in to Amazon ECR
+    - name: Run jenkins-githubaction
       shell: bash
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
-        AWS_REGION: ${{ env.AWS_REGION }}
-        ECR_REPO: ${{ env.ECR_REPO }}
-      run: |
-        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
-
-    - name: Pull the docker image
-      shell: bash
-      env:
-        DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-      run: docker pull $ECR_REPO:$DOCKER_IMAGE
-
-    - name: Run Docker container
-      shell: bash
-      env:
-        DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-        INPUT_AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
-        INPUT_AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_REGION: us-east-1
+        ECR_REPO: "899991151204.dkr.ecr.us-east-1.amazonaws.com"
+        DOCKER_IMAGE: "jenkins-githubaction:v1.0.1"
         INPUT_URL: ${{ inputs.url }}
         INPUT_JOB_NAME: ${{ inputs.job_name }}
         INPUT_USERNAME: ${{ inputs.username }}
@@ -87,4 +67,7 @@ runs:
         INPUT_TIMEOUT: ${{ inputs.timeout }}
         INPUT_START_TIMEOUT: ${{ inputs.start_timeout }}
         INPUT_INTERVAL: ${{ inputs.interval }}
-      run: docker run --env INPUT_AWS_ACCESS_KEY_ID --env INPUT_AWS_SECRET_ACCESS_KEY --env INPUT_URL --env INPUT_JOB_NAME --env INPUT_USERNAME --env INPUT_API_TOKEN --env INPUT_PARAMETERS --env INPUT_COOKIES --env INPUT_WAIT --env INPUT_TIMEOUT --env INPUT_START_TIMEOUT --env INPUT_INTERVAL $ECR_REPO:$DOCKER_IMAGE
+      run: |
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+        docker pull $ECR_REPO:$DOCKER_IMAGE
+        docker run --env INPUT_AWS_ACCESS_KEY_ID --env INPUT_AWS_SECRET_ACCESS_KEY --env INPUT_URL --env INPUT_JOB_NAME --env INPUT_USERNAME --env INPUT_API_TOKEN --env INPUT_PARAMETERS --env INPUT_COOKIES --env INPUT_WAIT --env INPUT_TIMEOUT --env INPUT_START_TIMEOUT --env INPUT_INTERVAL $ECR_REPO:$DOCKER_IMAGE
