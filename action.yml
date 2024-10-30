@@ -1,6 +1,6 @@
 name: "Jenkins-Action"
 description: "Start Jenkins jobs and report back url and status of build"
-author: "Josh Levy-Kramer"
+author: "Coupa Software"
 inputs:
   url:
     description: "Jenkins URL including http/https protocol"
@@ -40,5 +40,21 @@ outputs:
   build_url:
     description: "Jenkins build URL"
 runs:
-  using: "docker"
-  image: "Dockerfile"
+  using: "composite"
+  steps:
+    - name: Log in to Amazon ECR
+      shell: bash
+      env:
+        AWS_REGION: us-east-1
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 899991151204.dkr.ecr-fips.$AWS_REGION.amazonaws.com
+
+    - name: Build and run Docker image
+      run: docker build -t jenkins-action .
+      shell: bash
+
+    - name: Run Docker container
+      shell: bash
+      run: docker run jenkins-action
