@@ -1,6 +1,6 @@
 FROM python:3.7.13-slim AS builder
-ADD . /app
 WORKDIR /app
+ADD main.py /app
 
 # We are installing a dependency here directly into our app source dir
 RUN pip install --target=/app api4jenkins==1.11 requests==2.28.1

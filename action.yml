@@ -45,6 +45,13 @@ inputs:
 outputs:
   build_url:
     description: "Jenkins build URL"
+
+# Define the Docker image and tag at the top
+env:
+  AWS_REGION: us-east-1
+  ECR_REPO: "899991151204.dkr.ecr.us-east-1.amazonaws.com"
+  DOCKER_IMAGE: "jenkins-githubaction:v1.0.1"
+
 runs:
   using: "composite"
   steps:
@@ -53,13 +60,31 @@ runs:
       env:
         AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
         AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_REGION: ${{ env.AWS_REGION }}
+        ECR_REPO: ${{ env.ECR_REPO }}
       run: |
-        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 899991151204.dkr.ecr.us-east-1.amazonaws.com
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
 
     - name: Pull the docker image
       shell: bash
-      run: docker pull 899991151204.dkr.ecr.us-east-1.amazonaws.com/jenkins-githubaction:v1.0.1
+      env:
+        DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+      run: docker pull $ECR_REPO:$DOCKER_IMAGE
 
     - name: Run Docker container
       shell: bash
-      run: docker run 899991151204.dkr.ecr.us-east-1.amazonaws.com/jenkins-githubaction:v1.0.1
+      env:
+        DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+        INPUT_AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        INPUT_AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        INPUT_URL: ${{ inputs.url }}
+        INPUT_JOB_NAME: ${{ inputs.job_name }}
+        INPUT_USERNAME: ${{ inputs.username }}
+        INPUT_API_TOKEN: ${{ inputs.api_token }}
+        INPUT_PARAMETERS: ${{ inputs.parameters }}
+        INPUT_COOKIES: ${{ inputs.cookies }}
+        INPUT_WAIT: ${{ inputs.wait }}
+        INPUT_TIMEOUT: ${{ inputs.timeout }}
+        INPUT_START_TIMEOUT: ${{ inputs.start_timeout }}
+        INPUT_INTERVAL: ${{ inputs.interval }}
+      run: docker run --env INPUT_AWS_ACCESS_KEY_ID --env INPUT_AWS_SECRET_ACCESS_KEY --env INPUT_URL --env INPUT_JOB_NAME --env INPUT_USERNAME --env INPUT_API_TOKEN --env INPUT_PARAMETERS --env INPUT_COOKIES --env INPUT_WAIT --env INPUT_TIMEOUT --env INPUT_START_TIMEOUT --env INPUT_INTERVAL $ECR_REPO:$DOCKER_IMAGE
