@@ -68,6 +68,9 @@ runs:
         INPUT_START_TIMEOUT: ${{ inputs.start_timeout }}
         INPUT_INTERVAL: ${{ inputs.interval }}
       run: |
+        echo "1"
         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+        echo "2"
         docker pull $ECR_REPO:$DOCKER_IMAGE
+        echo "3"
         docker run --env INPUT_AWS_ACCESS_KEY_ID --env INPUT_AWS_SECRET_ACCESS_KEY --env INPUT_URL --env INPUT_JOB_NAME --env INPUT_USERNAME --env INPUT_API_TOKEN --env INPUT_PARAMETERS --env INPUT_COOKIES --env INPUT_WAIT --env INPUT_TIMEOUT --env INPUT_START_TIMEOUT --env INPUT_INTERVAL $ECR_REPO:$DOCKER_IMAGE
