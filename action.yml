@@ -1,7 +1,13 @@
 name: "Jenkins-Action"
-description: "Start Jenkins jobs and report back url and status of build"
+description: "Start Jenkins jobs and report back URL and status of build"
 author: "Coupa Software"
 inputs:
+  aws_access_key_id:
+    description: "AWS Access Key ID"
+    required: true
+  aws_secret_access_key:
+    description: "AWS Secret Access Key"
+    required: true
   url:
     description: "Jenkins URL including http/https protocol"
     required: true
@@ -45,15 +51,14 @@ runs:
     - name: Log in to Amazon ECR
       shell: bash
       env:
-        AWS_REGION: us-east-1
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
       run: |
-        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 899991151204.dkr.ecr-fips.$AWS_REGION.amazonaws.com
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 899991151204.dkr.ecr.us-east-1.amazonaws.com
 
-    - name: Build and run Docker image
-      run: docker build -t jenkins-action .
+    - name: Pull the docker image
       shell: bash
+      run: docker pull 899991151204.dkr.ecr.us-east-1.amazonaws.com/jenkins-githubaction:v1.0.1
 
     - name: Run Docker container
       shell: bash
